@@ -61,9 +61,12 @@ API can still be added later for a native app without throwing this work away.
 
 | Component | TV Time reference | Notes |
 |---|---|---|
-| `episode_card` | "S05 \| E01 +7 · Soda" cards | Landscape still/backdrop left, show-name pill (chevron → details), `SXX \| EYY (+n)` line, episode title, **large circular check button** on the right. Check = `episode_save` via HTMX, optimistic UI (fills green instantly, reverts on error) |
+| `media_card` (list) | "S05 \| E01 +7 · Soda" episode cards; movie cards (IMG_7936) | Landscape still/backdrop left, **large circular check button** right, swappable middle: episodes get show-name pill + `SXX \| EYY (+n)` + episode title; movies get title + `runtime • genres`. Check = `episode_save`/`media_save` via HTMX, optimistic UI (fills green instantly, reverts on error) |
 | `countdown_card` | "44 GIORNI" upcoming cards | Same anatomy but right side shows big day-count; PREMIERE/FINALE badges; expandable "N episodes" accordion |
-| `poster_card` | Grid view | 2:3 poster, bottom progress bar (existing `progress_bar.html` restyled), watched-count overlay in grid-of-upcoming variant |
+| `poster_card` | Grid view | 2:3 poster, 3-col mobile grid; bottom progress bar (existing `progress_bar.html` restyled) for episodic media, **no bar for movies** (IMG_7935); day-count overlay in upcoming variant |
+| `empty_state` | Empty Upcoming films (IMG_7937) | Big headline, illustration, one-line hint, single **yellow pill CTA** routing to discover/browse. Reused for every empty list/section |
+| `shelf` | Profile "Serie / Preferite / Film" rows (IMG_7940) | Horizontal scroll-snap poster row with section header + chevron "see all" link |
+| `stat_tile` | Profile "Tempo serie / Episodi visti" (IMG_7939) | Big-numeral tiles (months/days/hours, counts); tap-through to full statistics page |
 | `section_pill` | "GUARDA IL PROSSIMO" headers | Centered gray pill section separators |
 | `view_toggle` | Grid icon top-right | List ⇄ grid per section, persisted per user (existing `layout` param on media_list — extend to home) |
 | `bottom_sheet` | — | Replace desktop-style modals (track modal, history modal) with bottom sheets on mobile, drag-to-dismiss (Alpine + CSS transforms) |
@@ -90,6 +93,10 @@ API can still be added later for a native app without throwing this work away.
 | Watchlist (grid view, IMG_7931) | Home | Poster grid with yellow progress bars, view toggle top-right |
 | Upcoming (list, IMG_7932/7933) | New `Upcoming` segment on home; data from events/calendar app filtered to user's tracked media | Countdown cards grouped by date pills ("25 JUN 2026", "Later"), expandable episode lists |
 | Upcoming (grid, IMG_7934) | Same | Poster grid with day-count overlay |
+| Film Watchlist grid (IMG_7935) | Movies tab (medialist movie) | 3-col poster grid under "Watch next" pill; view toggle top-right |
+| Film Watchlist list (IMG_7936) | Movies tab | `media_card` movie variant: title, `runtime • genres`, check circle (one-tap mark completed) |
+| Film Upcoming empty (IMG_7937) | Movies tab → Upcoming segment | `empty_state` component with yellow "Browse all movies" CTA → discover |
+| Profile (IMG_7939/7940) | New Profile hub page | Hero backdrop header (avatar, username, edit pill, notification bell, ⋯ menu → settings), stat tiles pulling from existing `statistics` view (time watched, episodes seen), Lists section with create-card (existing `lists` app), horizontal shelves: per-media-type "recently active" + favorites. Chevrons deep-link to statistics, lists, and medialists |
 | Bottom nav | Global | New `base.html` layout |
 
 Media details, season details, search, statistics, lists, calendar and
@@ -159,29 +166,43 @@ pills) but keep their current information architecture.
 - [ ] 3.3 Upcoming grid view with day-count overlays.
 - [ ] 3.4 Segmented Watchlist ⇄ Upcoming tabs with swipe (scroll-snap) + HTMX prefetch of the inactive tab.
 
-### Phase 4 — Remaining screens restyle
-- [ ] 4.1 Media list: apply poster/episode cards, filter UI as bottom sheet.
-- [ ] 4.2 Search/Discover: sticky search field, source/type chips, card results.
-- [ ] 4.3 Media & season details: hero backdrop, tracking controls as bottom sheet, episode checklist rows.
-- [ ] 4.4 Calendar, statistics, lists, settings: token + component sweep.
-- [ ] 4.5 Remove dead CSS/templates from old layout.
+### Phase 4 — Movies tab & Profile hub
+- [ ] 4.1 Movies tab: Watchlist segment as medialist (movie) with list/grid variants of `media_card`/`poster_card`; one-tap complete via `media_save`.
+- [ ] 4.2 Movies Upcoming segment (calendar events, movie type) + `empty_state` with yellow browse CTA; roll `empty_state` out to all lists/sections.
+- [ ] 4.3 Profile hub page: hero header (avatar/backdrop from user settings), stat tiles fed by `app/statistics.py` aggregates, Lists section (create-card + shelf), horizontal `shelf` rows per media type + favorites; ⋯ menu → settings, bell → upcoming/notifications.
+- [ ] 4.4 Acceptance: Profile stat tiles match statistics page numbers; shelves are scroll-snap, 60 fps, images lazy beyond first three.
 
-### Phase 5 — PWA hardening
-- [ ] 5.1 Service worker rewrite (precache + runtime strategies + versioned invalidation + offline page).
-- [ ] 5.2 Image pipeline: native lazy-load, srcset, fetchpriority; drop lazysizes.
-- [ ] 5.3 Manifest polish + install prompt affordance ("Add to home screen" hint in Profile).
-- [ ] 5.4 (Stretch) Offline check-in queue with Background Sync.
-- [ ] 5.5 Acceptance: Lighthouse PWA installable, Performance ≥ 90 mobile, app opens instantly from home screen with cached shell offline.
+### Phase 5 — Remaining screens restyle
+- [ ] 5.1 Media list (other types): apply poster/episode cards, filter UI as bottom sheet.
+- [ ] 5.2 Search/Discover: sticky search field, source/type chips, card results.
+- [ ] 5.3 Media & season details: hero backdrop, tracking controls as bottom sheet, episode checklist rows.
+- [ ] 5.4 Calendar, statistics, lists, settings: token + component sweep.
+- [ ] 5.5 Remove dead CSS/templates from old layout.
 
-### Phase 6 — QA & release
-- [ ] 6.1 Cross-device pass (iOS Safari standalone quirks: safe areas, `100dvh`, no pull-to-refresh conflicts; Android Chrome).
-- [ ] 6.2 Template test-suite updates (`pytest` covers views/templates today — keep green each phase).
-- [ ] 6.3 Before/after metrics vs Phase 0 baseline; screenshots for README/manifest.
+### Phase 6 — PWA hardening
+- [ ] 6.1 Service worker rewrite (precache + runtime strategies + versioned invalidation + offline page).
+- [ ] 6.2 Image pipeline: native lazy-load, srcset, fetchpriority; drop lazysizes.
+- [ ] 6.3 Manifest polish + install prompt affordance ("Add to home screen" hint in Profile).
+- [ ] 6.4 (Stretch) Offline check-in queue with Background Sync.
+- [ ] 6.5 Acceptance: Lighthouse PWA installable, Performance ≥ 90 mobile, app opens instantly from home screen with cached shell offline.
 
-## 7. Open questions (for upcoming reference material)
+### Phase 7 — QA & release
+- [ ] 7.1 Cross-device pass (iOS Safari standalone quirks: safe areas, `100dvh`, no pull-to-refresh conflicts; Android Chrome).
+- [ ] 7.2 Template test-suite updates (`pytest` covers views/templates today — keep green each phase).
+- [ ] 7.3 Before/after metrics vs Phase 0 baseline; screenshots for README/manifest.
 
-1. **Accent palette** — adopt TV Time-style yellow progress accents, or keep Yamtrack indigo? (Plan assumes both themes tokenized, so this is a one-line change.)
-2. **Bottom tab set** — proposed Shows / Movies / Discover / Profile. Yamtrack tracks 8 media types; confirm which get top-level tabs vs living under Profile/lists.
+## 7. Resolved by reference screenshots (batch 2)
+
+- **Movies is a top-level tab** with the same Watchlist/Upcoming segments as Shows (IMG_7935–7937); movie cards show `runtime • genres`, no progress bars in grid.
+- **Yellow is the primary-action accent** (CTA pill, notification bell) in addition to progress bars — tokenized as `--color-accent`.
+- **Profile is a hub screen** (IMG_7939/7940): hero header, stat tiles, lists, horizontal shelves; statistics/lists/settings hang off it. This resolves where secondary nav lives.
+- **Empty states** are a first-class pattern: headline + illustration + hint + single yellow CTA.
+
+## 8. Open questions (for upcoming reference material)
+
+1. **Accent palette** — go full TV Time yellow, or keep Yamtrack indigo for actions and use yellow only for progress? (Tokenized either way — one-line change.)
+2. **Remaining 6 media types** (anime, manga, games, books, comics, boardgames) — fold into Shows/Movies tabs by "episodic vs one-shot", give Profile shelves only, or a configurable tab? Current sidebar is per-type and user-configurable (`get_sidebar_media_types`).
 3. **Upcoming scope** — tracked media only (TV Time behavior) or all calendar events?
 4. **Light theme** — ship in phase 0–1 or defer? TV Time reference is light; Yamtrack userbase may expect dark default.
-5. Additional screenshots to come — details, discover, and profile screens will refine Phase 4 specs.
+5. **Social row** (following/followers/comments on Profile) — Yamtrack has no follow graph; list collaborators are the closest concept. Omit, or show lists/collaborators counts instead?
+6. Screenshots still welcome: Discover/Esplora tab, media details, season/episode detail, notifications.
