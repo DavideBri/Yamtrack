@@ -1,7 +1,37 @@
 # Yamtrack Frontend Rebuild — Mobile-First PWA (TV Time-style)
 
-Status: **DRAFT v1** — living document, more reference material to come.
+Status: **APPROVED — implementation started** (2026-07-07).
 Branch: `claude/pwa-mobile-first-rebuild-qxh9x9`
+
+**Locked decisions** (from product owner):
+- Mimic TV Time's UI/UX, powered by Yamtrack's backend. Where the two
+  conflict, **user experience wins** — adapt the backend/IA as needed.
+- **Scope now: Shows (TV/Serie) and Movies (Film).** The design language
+  (cards, sheets, accordions, gestures, tabs) must be built so it extends to
+  the other tracked types (anime, manga, books, games, comics, boardgames)
+  in a later phase — anime/manga are episodic (Shows patterns), the rest are
+  one-shot (Movies patterns).
+- Bottom tabs: **Serie · Film · Esplora · Profilo**. Other media types
+  surface under Profilo (shelves + medialist links) until they get their own
+  treatment.
+- TV Time-style accent (yellow progress/CTA, green check) via tokens; light
+  + dark themes, dark stays the default.
+
+## Progress log
+
+- **2026-07-07** — Kickoff. Design tokens added to `input.css` `@theme`
+  (`--color-accent` TV Time yellow, `--color-watched` green, surface scale)
+  → utilities like `bg-accent`/`text-watched` now available (task 0.1,
+  hex-value sweep still pending). Bottom tab bar shipped in `base.html`
+  (task 1.1 first slice): Shows · Movies · Discover · Profile, mobile-only
+  (`lg:hidden`), safe-area aware (`viewport-fit=cover` +
+  `env(safe-area-inset-bottom)`), active-state per tab; Profile points to
+  Statistics until the Profile hub exists (task 4.3); the hamburger drawer
+  stays as secondary nav until Phase 4 moves those destinations. View tests
+  green (network-dependent tests fail in the sandbox regardless of changes).
+  Note: rebuild CSS after template class changes with
+  `npx @tailwindcss/cli -i ./static/css/input.css -o ./static/css/main.css`
+  from `src/`.
 
 ## 1. Goal
 

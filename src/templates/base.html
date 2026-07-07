@@ -6,7 +6,8 @@
   <head>
     {# Required meta tags #}
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="keywords" content="Yamtrack, Media Tracker">
     <meta name="description" content="Search and track media on Yamtrack.">
 
@@ -293,13 +294,58 @@
             </div>
           </div>
 
-          <main class="flex-1 relative bg-[#212529]">
+          <main class="flex-1 relative bg-[#212529] {% if user.is_authenticated %}pb-20 lg:pb-0{% endif %}">
             <div class="container mx-auto px-8 py-12">
               {% block content %}
               {% endblock content %}
             </div>
           </main>
         </div>
+
+        {# Mobile bottom tab bar (TV Time-style); desktop keeps the sidebar #}
+        {% if user.is_authenticated %}
+          {% block bottom_nav %}
+            <nav class="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-[#1a1d20] border-t border-[#2c3136] pb-[env(safe-area-inset-bottom)]"
+                 aria-label="Primary">
+              <div class="grid grid-cols-4 h-16">
+                {% url 'search' as search_url %}
+                {% url 'home' as home_url %}
+                <a href="{{ home_url }}"
+                   class="flex flex-col items-center justify-center gap-1 {% if request.path == home_url %}text-white{% else %}text-gray-400{% endif %}"
+                   {% if request.path == home_url %}aria-current="page"{% endif %}>
+                  {% icon 'tv' is_active=False extra_classes="w-6 h-6" %}
+                  <span class="text-[11px] {% if request.path == home_url %}font-semibold{% endif %}">Shows</span>
+                </a>
+
+                {% url 'medialist' username=user.username media_type='movie' as movies_url %}
+                {% if media_type == 'movie' and request.path != search_url %}
+                  {% firstof True as movies_active %}
+                {% endif %}
+                <a href="{{ movies_url }}"
+                   class="flex flex-col items-center justify-center gap-1 {% if movies_active %}text-white{% else %}text-gray-400{% endif %}"
+                   {% if movies_active %}aria-current="page"{% endif %}>
+                  {% icon 'movie' is_active=False extra_classes="w-6 h-6" %}
+                  <span class="text-[11px] {% if movies_active %}font-semibold{% endif %}">Movies</span>
+                </a>
+
+                <a href="{{ search_url }}"
+                   class="flex flex-col items-center justify-center gap-1 {% if request.path == search_url %}text-white{% else %}text-gray-400{% endif %}"
+                   {% if request.path == search_url %}aria-current="page"{% endif %}>
+                  {% include "app/icons/magnifying-glass.svg" with classes="w-6 h-6" %}
+                  <span class="text-[11px] {% if request.path == search_url %}font-semibold{% endif %}">Discover</span>
+                </a>
+
+                {% url 'statistics' as statistics_url %}
+                <a href="{{ statistics_url }}"
+                   class="flex flex-col items-center justify-center gap-1 {% if request.path == statistics_url %}text-white{% else %}text-gray-400{% endif %}"
+                   {% if request.path == statistics_url %}aria-current="page"{% endif %}>
+                  {% include "app/icons/person.svg" with classes="w-6 h-6" %}
+                  <span class="text-[11px] {% if request.path == statistics_url %}font-semibold{% endif %}">Profile</span>
+                </a>
+              </div>
+            </nav>
+          {% endblock bottom_nav %}
+        {% endif %}
       </div>
     {% endblock body %}
 

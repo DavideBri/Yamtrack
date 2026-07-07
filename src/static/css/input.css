@@ -2,6 +2,14 @@
 
 @theme {
   --breakpoint-xs: 30rem;
+
+  /* TV Time-inspired design tokens (FRONTEND_REBUILD_PLAN.md §3.4) */
+  --color-accent: #fdd935; /* progress bars, primary CTAs, active dots */
+  --color-accent-ink: #1c1c1c; /* text/icons on accent */
+  --color-watched: #7bc74d; /* check-circle committed state */
+  --color-surface: #212529;
+  --color-surface-raised: #1a1d20;
+  --color-surface-overlay: #2c3136;
 }
 
 [x-cloak] {

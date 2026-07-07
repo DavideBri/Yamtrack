@@ -16,3 +16,6 @@ requests.http
 TODO.txt
 .codex
 .cache
+node_modules
+package.json
+package-lock.json
