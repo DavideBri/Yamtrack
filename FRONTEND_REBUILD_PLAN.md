@@ -67,6 +67,7 @@ API can still be added later for a native app without throwing this work away.
 | `empty_state` | Empty Upcoming films (IMG_7937) | Big headline, illustration, one-line hint, single **yellow pill CTA** routing to discover/browse. Reused for every empty list/section |
 | `shelf` | Profile "Serie / Preferite / Film" rows (IMG_7940) | Horizontal scroll-snap poster row with section header + chevron "see all" link |
 | `stat_tile` | Profile "Tempo serie / Episodi visti" (IMG_7939) | Big-numeral tiles (months/days/hours, counts); tap-through to full statistics page |
+| `stat_card` | Statistics page (IMG_7943–7947) | Card stack, three variants: **big-number** (huge numeral + unit words + "N in the last 7 days" delta line), **bar chart** (weekly hours/episodes, axis labels, period caption), **ranked table** (label column + value column: genres, networks, top scores). Cards can pair number⇄chart as a swipeable 2-page carousel (scroll-snap) with dot indicators (yellow active dot), optional footer ("ALL TIME" period, compare link) |
 | `section_pill` | "GUARDA IL PROSSIMO" headers | Centered gray pill section separators |
 | `view_toggle` | Grid icon top-right | List ⇄ grid per section, persisted per user (existing `layout` param on media_list — extend to home) |
 | `bottom_sheet` | — | Replace desktop-style modals (track modal, history modal) with bottom sheets on mobile, drag-to-dismiss (Alpine + CSS transforms) |
@@ -97,11 +98,43 @@ API can still be added later for a native app without throwing this work away.
 | Film Watchlist list (IMG_7936) | Movies tab | `media_card` movie variant: title, `runtime • genres`, check circle (one-tap mark completed) |
 | Film Upcoming empty (IMG_7937) | Movies tab → Upcoming segment | `empty_state` component with yellow "Browse all movies" CTA → discover |
 | Profile (IMG_7939/7940) | New Profile hub page | Hero backdrop header (avatar, username, edit pill, notification bell, ⋯ menu → settings), stat tiles pulling from existing `statistics` view (time watched, episodes seen), Lists section with create-card (existing `lists` app), horizontal shelves: per-media-type "recently active" + favorites. Chevrons deep-link to statistics, lists, and medialists |
+| Statistics (IMG_7943–7947) | Statistics page rebuild | Back-chevron header + per-media-type segmented tabs (Serie/Film → all tracked types). Card stack of `stat_card`s — see §4.1 for the card inventory and backend gaps |
 | Bottom nav | Global | New `base.html` layout |
 
-Media details, season details, search, statistics, lists, calendar and
-settings are **restyled with the same component library** (cards, sheets,
-pills) but keep their current information architecture.
+Media details, season details, search, lists, calendar and settings are
+**restyled with the same component library** (cards, sheets, pills) but keep
+their current information architecture.
+
+### 4.1 Statistics page — card inventory (TV Time → Yamtrack)
+
+Yamtrack already computes: activity heatmap, media-type/status/score
+distributions, top rated, timeline, streaks, day-of-week stats
+(`app/statistics.py`). The TV Time layout reorganizes this into a **per-media-
+type card stack** and adds a few aggregates we don't have yet:
+
+| TV Time card | Yamtrack source | Gap |
+|---|---|---|
+| Time spent watching (3 mesi 23 giorni 19 ore + 7-day delta) + weekly hours bar chart (carousel pair) | — | **New**: needs runtime aggregation over watched episodes/media |
+| Total episodes watched (4.532 + 7-day delta) + weekly episodes bar chart | `Episode` rows + history timestamps | New aggregate, data already present |
+| Biggest binges (show / episodes / hours table) | History timestamps | New aggregate: max episodes of one show within a day |
+| Series added (91, "17 still in production") | Media rows + provider status | Count exists; "in production" needs persisted status metadata |
+| Top genres table | Provider details (render-time only) | **Backend gap** (see below) |
+| Top networks/streaming services table | Provider details (render-time only) | **Backend gap** (see below) |
+| Ratings given (474 on 68 series) + most-given per show | `Media.score` | Adapt: TV Time uses "Wow" reactions; we show score counts + avg/mode per show |
+| Character votes / comments / likes received | — | **Omit** — no social graph. Keep notes count as the nearest concept (optional card) |
+
+**Backend gap — persisted metadata**: `Item` stores only
+id/source/type/title/image. Genres, runtime, and networks live in provider
+API responses fetched at page-render time. Time-watched, top-genres, and
+top-networks cards require persisting `runtime_minutes`, `genres`, and
+`networks/studios` (JSON) on `Item`, populated on save and backfilled through
+the existing `sync_metadata` task machinery. This is the one schema change in
+the whole plan — worth doing early (Phase 0) so data accumulates.
+
+**Chart rendering**: these are simple weekly bar charts — render as inline
+SVG in templates (server-side values, no JS) instead of loading Chart.js on
+mobile stats. Keep Chart.js only where genuinely interactive (or drop it in
+Phase 5 if the SVG approach covers everything).
 
 ## 5. PWA & performance workstream
 
@@ -146,6 +179,7 @@ pills) but keep their current information architecture.
 - [ ] 0.1 Design tokens: extract palette to `@theme` custom properties; map current hexes; add light-scheme values.
 - [ ] 0.2 Component scaffolding: create `templates/app/components/ui/` (badge, pill, skeleton, sheet, card shells) with a demo page behind DEBUG.
 - [ ] 0.3 Baseline metrics: record Lighthouse (mobile) scores + bundle sizes for home, media list, details. These are the regression gate.
+- [ ] 0.4 Schema: add persisted metadata to `Item` (`runtime_minutes`, `genres`, `networks` JSON) + populate on save + backfill via `sync_metadata` task. Do this first so watch-time/genre/network stats (§4.1) have data by the time Phase 5 ships.
 
 ### Phase 1 — App shell & navigation
 - [ ] 1.1 New `base.html` layout: bottom tab bar (mobile) / sidebar (desktop), safe-area insets, `100dvh` layout, scroll restoration.
@@ -176,8 +210,9 @@ pills) but keep their current information architecture.
 - [ ] 5.1 Media list (other types): apply poster/episode cards, filter UI as bottom sheet.
 - [ ] 5.2 Search/Discover: sticky search field, source/type chips, card results.
 - [ ] 5.3 Media & season details: hero backdrop, tracking controls as bottom sheet, episode checklist rows.
-- [ ] 5.4 Calendar, statistics, lists, settings: token + component sweep.
-- [ ] 5.5 Remove dead CSS/templates from old layout.
+- [ ] 5.4 Statistics rebuild (§4.1): per-media-type segmented tabs; `stat_card` stack — time watched (+7-day delta, weekly hours chart), episodes watched (+delta, weekly chart), biggest binges, added counts, top genres, top networks, scores given; number⇄chart swipe carousels; inline-SVG charts, Chart.js removed from this page. Backend: new aggregates in `app/statistics.py` reading the Phase 0 metadata.
+- [ ] 5.5 Calendar, lists, settings: token + component sweep.
+- [ ] 5.6 Remove dead CSS/templates from old layout.
 
 ### Phase 6 — PWA hardening
 - [ ] 6.1 Service worker rewrite (precache + runtime strategies + versioned invalidation + offline page).
@@ -197,6 +232,7 @@ pills) but keep their current information architecture.
 - **Yellow is the primary-action accent** (CTA pill, notification bell) in addition to progress bars — tokenized as `--color-accent`.
 - **Profile is a hub screen** (IMG_7939/7940): hero header, stat tiles, lists, horizontal shelves; statistics/lists/settings hang off it. This resolves where secondary nav lives.
 - **Empty states** are a first-class pattern: headline + illustration + hint + single yellow CTA.
+- **Statistics** (batch 3, IMG_7943–7947) is a per-media-type card stack: big-number cards with 7-day deltas, weekly bar charts, ranked tables (genres, networks, scores), swipeable number⇄chart carousels. Mapped card-by-card in §4.1; requires the Phase 0 `Item` metadata schema change. Social cards (character votes, comments, likes) are omitted — no social graph in Yamtrack.
 
 ## 8. Open questions (for upcoming reference material)
 
