@@ -72,6 +72,10 @@ API can still be added later for a native app without throwing this work away.
 | `view_toggle` | Grid icon top-right | List ⇄ grid per section, persisted per user (existing `layout` param on media_list — extend to home) |
 | `bottom_sheet` | — | Replace desktop-style modals (track modal, history modal) with bottom sheets on mobile, drag-to-dismiss (Alpine + CSS transforms) |
 | `badge` | PREMIERE / ULTIMO | Black pill badges on cards |
+| `detail_sheet` | Episode detail (IMG_7953–7955) | Full-height sheet: chevron-down to dismiss, **horizontal pager between episodes** of the season (dot indicators, yellow active), sticky mini-header ("Show S05 \| E06") once scrolled past the hero |
+| `meta_row` | Detail screens | Calendar icon + air/release date, eye icon + watched date (or "Not watched"), big check circle right (gray → green), one-tap toggle |
+| `provider_pills` | "Dove guardare" | Horizontal scroll of streaming-provider pills (logo + name) from TMDB `watch/providers` (already fetched); gear icon → region picker |
+| `trailer_card` | "Guarda il trailer 02:25" | Thumbnail + play overlay + duration, links out to YouTube (needs `videos` append in TMDB provider) |
 | `skeleton` | — | Skeleton shimmer placeholders for every card type, used during HTMX loads |
 
 ### 3.3 Visual tokens
@@ -135,6 +139,34 @@ the whole plan — worth doing early (Phase 0) so data accumulates.
 SVG in templates (server-side values, no JS) instead of loading Chart.js on
 mobile stats. Keep Chart.js only where genuinely interactive (or drop it in
 Phase 5 if the SVG approach covers everything).
+
+### 4.2 Detail screens (IMG_7953–7958)
+
+**Episode detail** — today this lives inside the season page + track modal;
+it becomes a `detail_sheet` opened from any episode row/card:
+
+| TV Time element | Yamtrack mapping |
+|---|---|
+| Hero still, `S05 \| E08` + title overlay, show-name pill → show page, share icon | Season/episode metadata (already fetched); share = Web Share API with canonical URL |
+| Meta row: air date · watched state · check circle | `Episode.end_date` + calendar data; check = `episode_save` (unwatch on re-tap), same optimistic pattern as cards |
+| Swipe between episodes + dot pager | Episodes of the current season, server-rendered pages loaded lazily via HTMX on swipe |
+| "Dove guardare" provider pills | TMDB `watch/providers` — **already in provider payloads**, just needs rendering + region setting (gear) |
+| Episode info: community stars + synopsis | TMDB episode rating/overview |
+| Rate-this-episode stars, "where did you watch it?" picker, emoji reactions, favorite character, comments | **Omit** — community/social features. Optional stretch: per-episode score (would need a `score` field on `Episode`; today scores exist only at media/season level) — logged as open question |
+
+**Movie / media detail** (IMG_7957–7958) — full-page route, restyled:
+
+| TV Time element | Yamtrack mapping |
+|---|---|
+| Hero backdrop, title + `runtime • genres` overlay, collapsing sticky header, ⋯ menu | Existing details data; ⋯ menu hosts edit/delete/history (today's track-modal actions) |
+| Meta row: release date · watched date · green check | `Media` dates + one-tap `media_save` status toggle |
+| INFO \| ALTRO segmented tabs | INFO = providers, synopsis, trailer, cast, related; ALTRO = your tracking (history, notes, repeats, score) |
+| "Dove guardare" pills | As above — render already-fetched `providers` data |
+| "What interests you most?" survey | **Omit** (TV Time data collection) |
+| Trailer card | Add `videos` to TMDB append list (one-line provider change) + `trailer_card` |
+| "34 hanno aggiunto questo film" | Count of users on this instance tracking the item — cheap aggregate, nice multi-user touch |
+| Cast shelf | Already rendered (`cast_card`) — restyle as `shelf` |
+| "Gli altri hanno visto anche" | Existing `related`/recommendations section — restyle as `shelf` |
 
 ## 5. PWA & performance workstream
 
@@ -209,7 +241,8 @@ Phase 5 if the SVG approach covers everything).
 ### Phase 5 — Remaining screens restyle
 - [ ] 5.1 Media list (other types): apply poster/episode cards, filter UI as bottom sheet.
 - [ ] 5.2 Search/Discover: sticky search field, source/type chips, card results.
-- [ ] 5.3 Media & season details: hero backdrop, tracking controls as bottom sheet, episode checklist rows.
+- [ ] 5.3 Media details rebuild (§4.2): hero backdrop + collapsing header, meta row with one-tap check, INFO/ALTRO tabs, provider pills (render existing `watch/providers` data + region setting), trailer card (add `videos` append to TMDB provider), "N users track this" count, cast/related as shelves; ⋯ menu absorbs track-modal actions.
+- [ ] 5.3b Episode `detail_sheet` (§4.2): sheet with episode pager (HTMX lazy pages), meta row + check, provider pills, synopsis/rating; season page episode rows open it. Season details page restyled to match.
 - [ ] 5.4 Statistics rebuild (§4.1): per-media-type segmented tabs; `stat_card` stack — time watched (+7-day delta, weekly hours chart), episodes watched (+delta, weekly chart), biggest binges, added counts, top genres, top networks, scores given; number⇄chart swipe carousels; inline-SVG charts, Chart.js removed from this page. Backend: new aggregates in `app/statistics.py` reading the Phase 0 metadata.
 - [ ] 5.5 Calendar, lists, settings: token + component sweep.
 - [ ] 5.6 Remove dead CSS/templates from old layout.
@@ -233,6 +266,7 @@ Phase 5 if the SVG approach covers everything).
 - **Profile is a hub screen** (IMG_7939/7940): hero header, stat tiles, lists, horizontal shelves; statistics/lists/settings hang off it. This resolves where secondary nav lives.
 - **Empty states** are a first-class pattern: headline + illustration + hint + single yellow CTA.
 - **Statistics** (batch 3, IMG_7943–7947) is a per-media-type card stack: big-number cards with 7-day deltas, weekly bar charts, ranked tables (genres, networks, scores), swipeable number⇄chart carousels. Mapped card-by-card in §4.1; requires the Phase 0 `Item` metadata schema change. Social cards (character votes, comments, likes) are omitted — no social graph in Yamtrack.
+- **Detail screens** (batch 4, IMG_7953–7958, mapped in §4.2): episode detail is a swipeable sheet with per-episode pager; movie detail is a full page with hero, INFO/ALTRO tabs, trailer, cast and recommendations shelves. TMDB provider **already fetches** cast, recommendations, and `watch/providers` — "Dove guardare" is render-only work; trailer needs a one-line `videos` append. Ratings/reactions/favorite-character/comments per episode are omitted (social features).
 
 ## 8. Open questions (for upcoming reference material)
 
@@ -241,4 +275,5 @@ Phase 5 if the SVG approach covers everything).
 3. **Upcoming scope** — tracked media only (TV Time behavior) or all calendar events?
 4. **Light theme** — ship in phase 0–1 or defer? TV Time reference is light; Yamtrack userbase may expect dark default.
 5. **Social row** (following/followers/comments on Profile) — Yamtrack has no follow graph; list collaborators are the closest concept. Omit, or show lists/collaborators counts instead?
-6. Screenshots still welcome: Discover/Esplora tab, media details, season/episode detail, notifications.
+6. **Per-episode ratings** — TV Time rates each episode (stars). Yamtrack scores only media/seasons; adding `Episode.score` is a small schema change but a real feature decision. In scope?
+7. Screenshots still welcome: Discover/Esplora tab and notifications are the only screens left without a reference.
