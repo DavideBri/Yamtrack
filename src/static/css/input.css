@@ -34,6 +34,32 @@
 @custom-variant hover-tap (&:hover);
 @custom-variant parent-hover-tap (.hover-tap:hover &);
 
+/*
+ * Prevent iOS Safari from auto-zooming when a form control is focused. iOS
+ * zooms whenever the focused field's font-size is below 16px, which yanks the
+ * whole layout around on every tap into a search box or the tracking form.
+ * Only applies to touch devices so desktop keeps its compact sizing. The
+ * attribute selectors out-specify Tailwind's single-class font utilities.
+ */
+@media (pointer: coarse) {
+  input[type="text"],
+  input[type="search"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="url"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="time"],
+  input[type="month"],
+  input[type="week"],
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 .toast-error {
   @apply bg-red-700/95 border-red-600;
 }

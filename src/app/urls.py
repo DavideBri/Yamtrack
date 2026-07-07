@@ -87,4 +87,5 @@ urlpatterns = [
     ),
     path("statistics", views.statistics, name="statistics"),
     path("serviceworker.js", views.service_worker, name="service_worker"),
+    path("offline", views.offline, name="offline"),
 ]

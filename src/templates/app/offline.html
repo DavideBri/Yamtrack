@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scheme-dark bg-[#212529]">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="keywords" content="Yamtrack, Media Tracker">
+    <meta name="description" content="Yamtrack is offline. Check your connection and try again.">
+    <title>Offline - Yamtrack</title>
+    <link rel="stylesheet"
+          type="text/css"
+          href="{% static 'css/main.css' %}">
+    <link rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="{% static 'favicon/favicon-32x32.png' %}">
+    <meta name="theme-color" content="#181a1b">
+  </head>
+  <body class="bg-[#212529] text-gray-100">
+    <main class="min-h-screen flex flex-col items-center justify-center px-6 text-center"
+          style="padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom)">
+      <div class="bg-[#39404b] rounded-full p-5 mb-6 flex items-center justify-center">
+        {% include "app/icons/wifi-off.svg" with classes="w-10 h-10 text-gray-300" %}
+      </div>
+      <h1 class="text-2xl font-bold mb-2">You're offline</h1>
+      <p class="text-gray-400 max-w-sm mb-8">
+        Yamtrack can't reach the server right now. Check your connection and try again.
+      </p>
+      <button onclick="window.location.reload()"
+              class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors cursor-pointer">
+        Retry
+      </button>
+    </main>
+  </body>
+</html>

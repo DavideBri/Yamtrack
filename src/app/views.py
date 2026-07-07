@@ -976,11 +976,25 @@ def statistics(request):
     return render(request, "app/statistics.html", context)
 
 
+@login_not_required
 @require_GET
-def service_worker():
-    """Serve the service worker file."""
+def service_worker(request):  # noqa: ARG001
+    """Serve the service worker from the site root so its scope covers the app.
+
+    A service worker can only control pages at or below the path it is served
+    from, so it must live at "/serviceworker.js" (not under /static/) to control
+    the whole app. It also needs to be reachable without authentication because
+    the browser fetches it on every page, including the login screen.
+    """
     sw_path = Path(settings.STATICFILES_DIRS[0]) / "js" / "serviceworker.js"
     with sw_path.open() as f:
         response = HttpResponse(f.read(), content_type="application/javascript")
         response["Service-Worker-Allowed"] = "/"
         return response
+
+
+@login_not_required
+@require_GET
+def offline(request):
+    """Minimal offline fallback shown by the service worker when the network is down."""
+    return render(request, "app/offline.html")
