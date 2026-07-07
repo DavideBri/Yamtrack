@@ -124,6 +124,8 @@ def progress_edit(request, media_type, instance_id):
     }
     # The home list layout swaps a card-shaped region instead of the +/- changer
     if request.POST.get("view") == "card":
+        # get_media_prefetch loses the max_progress annotation on .get()
+        BasicMedia.objects.annotate_max_progress([media], media_type)
         return render(
             request,
             "app/components/next_progress.html",

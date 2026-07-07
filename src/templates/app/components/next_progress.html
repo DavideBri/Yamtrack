@@ -7,7 +7,11 @@
   {% if media.item.media_type == MediaTypes.SEASON.value %}
     <div class="flex items-baseline gap-1.5">
       <span class="text-xl font-bold tracking-tight text-white">
-        S{{ media.item.season_number|stringformat:"02d" }} | E{{ media.progress|add:1|stringformat:"02d" }}
+        {% if media.progress == media.max_progress and media.max_progress %}
+          S{{ media.item.season_number|stringformat:"02d" }} | E{{ media.progress|stringformat:"02d" }}
+        {% else %}
+          S{{ media.item.season_number|stringformat:"02d" }} | E{{ media.progress|add:1|stringformat:"02d" }}
+        {% endif %}
       </span>
       {% if media.max_progress %}
         {% with remaining=media.max_progress|sub:media.progress|sub:1 %}
@@ -44,7 +48,7 @@
 {% else %}
   <button type="button"
           class="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#39404b] text-gray-300 transition-colors duration-150 hover:bg-[#454d5a] disabled:pointer-events-none"
-          title="Mark next {{ media.item.media_type|long_unit }} as done"
+          title="{% if media.item.media_type == MediaTypes.MOVIE.value %}Mark as watched{% elif media.item.media_type == MediaTypes.SEASON.value %}Mark next episode as watched{% else %}Mark next as done{% endif %}"
           hx-post="{% url 'progress_edit' media.item.media_type media.id %}"
           hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
           hx-vals='{"operation": "increase", "view": "card"}'

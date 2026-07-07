@@ -18,7 +18,7 @@
     </a>
 
     {% if home_status == Status.PLANNING.value %}
-      <div class="text-sm font-semibold text-white line-clamp-1">{{ media }}</div>
+      <div class="text-sm font-medium text-gray-400">In watchlist</div>
     {% else %}
       <div class="next-progress flex items-center justify-between gap-3"
            id="next-progress-{{ media.item.media_type }}-{{ media.id }}">

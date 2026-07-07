@@ -306,6 +306,27 @@ class HomeViewTests(TestCase):
         self.assertEqual(len(response.context["media_list"]["items"]), 2)
         self.assertEqual(response.context["media_list"]["total"], 16)
 
+    def test_home_view_list_layout_with_in_progress_movie(self):
+        """Test the list layout renders an in-progress movie card."""
+        movie_item = Item.objects.create(
+            media_id="in-progress-movie",
+            source=Sources.TMDB.value,
+            media_type=MediaTypes.MOVIE.value,
+            title="Test Movie",
+            image="http://example.com/image.jpg",
+        )
+        Movie.objects.create(
+            item=movie_item,
+            user=self.user,
+            status=Status.IN_PROGRESS.value,
+        )
+
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "app/components/media_card_next.html")
+        self.assertContains(response, "Not watched yet")
+
     def test_home_view_layout_toggle_persists(self):
         """Test that the home layout preference persists via query param."""
         self.client.get(reverse("home") + "?layout=grid")

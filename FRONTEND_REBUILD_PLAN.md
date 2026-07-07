@@ -19,6 +19,19 @@ Branch: `claude/pwa-mobile-first-rebuild-qxh9x9`
 
 ## Progress log
 
+- **2026-07-07 (3)** — Live-drove the build (Playwright, mobile viewport,
+  manual-source seed data) and fixed three bugs it exposed: (1) movie cards
+  crashed on `long_unit` (movies have no unit property) — now conditional
+  check-button titles + regression test; (2) after a card check-in the
+  re-render lost `max_progress` (queryset annotation dropped by `.get()`)
+  so completed state never showed — card branch re-annotates; (3) upstream
+  bug: `Season.get_tv` hardcoded `source=TMDB` when auto-creating the TV
+  item, breaking season completion for manual-source media — now uses the
+  season's source. Verified end-to-end: tap 9/10 season → 10/10 green check
+  + auto-completed toasts, HTTP 200. Card polish: completed seasons show the
+  last-watched episode number; planning cards show "In watchlist" instead of
+  a duplicated title.
+
 - **2026-07-07 (2)** — Phase 2 first drop: home Watchlist in TV Time list
   layout. New components: `media_card_next` (poster thumb, show-name pill,
   `SXX | EYY +n` line, next-airing row) and `next_progress` (swappable

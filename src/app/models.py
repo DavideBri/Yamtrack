@@ -1644,7 +1644,7 @@ class Season(Media):
 
             item, _ = Item.objects.get_or_create(
                 media_id=self.item.media_id,
-                source=Sources.TMDB.value,
+                source=self.item.source,
                 media_type=MediaTypes.TV.value,
                 defaults={
                     "title": tv_metadata["title"],
