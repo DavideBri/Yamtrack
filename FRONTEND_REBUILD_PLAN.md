@@ -19,6 +19,21 @@ Branch: `claude/pwa-mobile-first-rebuild-qxh9x9`
 
 ## Progress log
 
+- **2026-07-07 (2)** — Phase 2 first drop: home Watchlist in TV Time list
+  layout. New components: `media_card_next` (poster thumb, show-name pill,
+  `SXX | EYY +n` line, next-airing row) and `next_progress` (swappable
+  progress+check region). One-tap check posts the existing `progress_edit`
+  increase (season → next-episode via metadata; movie → 0/1 completed) with
+  instant green fill, returning the refreshed card region. Section headers
+  are centered pills ("Watch next" / "Watchlist"); list⇄grid toggle top-right
+  persisted via new `User.home_layout` field (migration 0056, default list);
+  grid view kept as the alternate layout, its In-progress bars now accent
+  yellow (`progress_bar.html`). `progress_edit` accepts `view=card`; HTMX
+  load-more renders the partial matching the active layout. Added `sub`
+  template filter. Tests updated + new layout-persistence test; home,
+  statistics, and users suites green (89). Still open in Phase 2: undo
+  toast, skeletons (2.4), swipe gestures (2.6), planning-card check.
+
 - **2026-07-07** — Kickoff. Design tokens added to `input.css` `@theme`
   (`--color-accent` TV Time yellow, `--color-watched` green, surface scale)
   → utilities like `bg-accent`/`text-watched` now available (task 0.1,

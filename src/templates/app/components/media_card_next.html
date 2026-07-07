@@ -1,0 +1,41 @@
+{% load app_tags %}
+
+{# TV Time-style list card: poster thumb, show pill / title, progress + one-tap check #}
+<div class="flex items-stretch overflow-hidden rounded-xl bg-[#2a2f35] shadow-md">
+  <a href="{{ media.item|media_url }}" class="w-20 shrink-0 sm:w-24">
+    <img alt="{{ media }}"
+         class="lazyload h-full w-full {% if media.item.image != IMG_NONE %}object-cover{% endif %}"
+         data-src="{{ media.item.image }}"
+         src="{{ IMG_NONE }}">
+  </a>
+
+  <div class="min-w-0 flex-1 space-y-1.5 p-3">
+    <a href="{{ media.item|media_url }}"
+       class="inline-flex max-w-full items-center gap-1 rounded-full border border-gray-600 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-gray-200 uppercase transition-colors hover:border-gray-400"
+       title="{{ media.item.title }}">
+      <span class="truncate">{{ media.item.title }}</span>
+      {% include "app/icons/chevron-right.svg" with classes="w-3 h-3 shrink-0" %}
+    </a>
+
+    {% if home_status == Status.PLANNING.value %}
+      <div class="text-sm font-semibold text-white line-clamp-1">{{ media }}</div>
+    {% else %}
+      <div class="next-progress flex items-center justify-between gap-3"
+           id="next-progress-{{ media.item.media_type }}-{{ media.id }}">
+        {% include "app/components/next_progress.html" with media=media user=user csrf_token=csrf_token MediaTypes=MediaTypes only %}
+      </div>
+    {% endif %}
+
+    {% if media.next_event and not media.next_event.is_max_datetime %}
+      <div class="flex items-center gap-1.5 text-xs text-gray-400">
+        {% include "app/icons/clock.svg" with classes="w-3.5 h-3.5 shrink-0" %}
+        <span class="truncate">
+          {% if media.next_event.content_number %}
+            {{ media.item.media_type|short_unit }}{{ media.next_event.content_number }} •
+          {% endif %}
+          {{ media.next_event.datetime|natural_day:user }}
+        </span>
+      </div>
+    {% endif %}
+  </div>
+</div>

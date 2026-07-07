@@ -1,0 +1,57 @@
+{% load app_tags %}
+
+{% include "app/components/messages/messages_oob.html" %}
+
+{# Progress text + one-tap check. Swapped whole by progress_edit (view=card). #}
+<div class="min-w-0">
+  {% if media.item.media_type == MediaTypes.SEASON.value %}
+    <div class="flex items-baseline gap-1.5">
+      <span class="text-xl font-bold tracking-tight text-white">
+        S{{ media.item.season_number|stringformat:"02d" }} | E{{ media.progress|add:1|stringformat:"02d" }}
+      </span>
+      {% if media.max_progress %}
+        {% with remaining=media.max_progress|sub:media.progress|sub:1 %}
+          {% if remaining > 0 %}<span class="text-xs font-semibold text-gray-400">+{{ remaining }}</span>{% endif %}
+        {% endwith %}
+      {% endif %}
+    </div>
+    <div class="text-xs text-gray-400">
+      {{ media.progress }}{% if media.max_progress %}/{{ media.max_progress }}{% endif %} {{ media.item.media_type|long_unit }}s watched
+    </div>
+  {% elif media.item.media_type == MediaTypes.MOVIE.value %}
+    <div class="text-sm font-medium text-gray-400">
+      {% if media.progress == media.max_progress and media.max_progress %}
+        Watched
+      {% else %}
+        Not watched yet
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="text-xl font-bold tracking-tight text-white">
+      {{ media.formatted_progress }}{% if media.max_progress %}<span class="text-sm font-semibold text-gray-400">/{{ media.max_progress }}</span>{% endif %}
+      {% if media.item.media_type != MediaTypes.GAME.value %}
+        <span class="text-sm font-semibold text-gray-400">{{ media.item.media_type|long_unit }}{{ media.progress|pluralize }}</span>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+{% if media.progress == media.max_progress and media.max_progress %}
+  <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-watched text-white"
+       title="Completed">
+    {% include "app/icons/checkmark.svg" with classes="w-6 h-6" %}
+  </div>
+{% else %}
+  <button type="button"
+          class="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#39404b] text-gray-300 transition-colors duration-150 hover:bg-[#454d5a] disabled:pointer-events-none"
+          title="Mark next {{ media.item.media_type|long_unit }} as done"
+          hx-post="{% url 'progress_edit' media.item.media_type media.id %}"
+          hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+          hx-vals='{"operation": "increase", "view": "card"}'
+          hx-swap="innerHTML"
+          hx-target="closest .next-progress"
+          hx-disabled-elt="this"
+          hx-on:click="this.classList.add('bg-watched!','text-white')">
+    {% include "app/icons/checkmark.svg" with classes="w-6 h-6" %}
+  </button>
+{% endif %}

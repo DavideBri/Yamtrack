@@ -248,13 +248,13 @@ class HomeViewTests(TestCase):
                 end_date=timezone.now(),
             )
 
-        # Now test the load more functionality
+        # Now test the load more functionality (list layout is the default)
         response = self.client.get(
             reverse("home") + "?load_media_type=season", headers={"hx-request": "true"}
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "app/components/home_grid.html")
+        self.assertTemplateUsed(response, "app/components/home_list_items.html")
 
         self.assertIn("media_list", response.context)
         self.assertEqual(response.context["home_status"], Status.IN_PROGRESS.value)
@@ -286,6 +286,10 @@ class HomeViewTests(TestCase):
                 status=Status.PLANNING.value,
             )
 
+        # Grid layout renders the grid partial
+        self.user.home_layout = "grid"
+        self.user.save(update_fields=["home_layout"])
+
         response = self.client.get(
             reverse("home")
             + (
@@ -301,3 +305,13 @@ class HomeViewTests(TestCase):
         self.assertIn("media_list", response.context)
         self.assertEqual(len(response.context["media_list"]["items"]), 2)
         self.assertEqual(response.context["media_list"]["total"], 16)
+
+    def test_home_view_layout_toggle_persists(self):
+        """Test that the home layout preference persists via query param."""
+        self.client.get(reverse("home") + "?layout=grid")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.home_layout, "grid")
+
+        self.client.get(reverse("home") + "?layout=list")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.home_layout, "list")

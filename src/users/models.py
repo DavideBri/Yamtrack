@@ -30,6 +30,13 @@ class HomeSortChoices(models.TextChoices):
     TITLE = "title", "Title"
 
 
+class HomeLayoutChoices(models.TextChoices):
+    """Choices for home page layout options."""
+
+    LIST = "list", "List"
+    GRID = "grid", "Grid"
+
+
 class MediaSortChoices(models.TextChoices):
     """Choices for media list sort options."""
 
@@ -133,6 +140,12 @@ class User(AbstractUser):
         max_length=20,
         default=HomeSortChoices.UPCOMING,
         choices=HomeSortChoices,
+    )
+
+    home_layout = models.CharField(
+        max_length=20,
+        default=HomeLayoutChoices.LIST,
+        choices=HomeLayoutChoices,
     )
 
     # Media type preferences: TV Shows
@@ -437,6 +450,10 @@ class User(AbstractUser):
             models.CheckConstraint(
                 name="home_sort_valid",
                 condition=models.Q(home_sort__in=HomeSortChoices.values),
+            ),
+            models.CheckConstraint(
+                name="home_layout_valid",
+                condition=models.Q(home_layout__in=HomeLayoutChoices.values),
             ),
             models.CheckConstraint(
                 name="tv_layout_valid",

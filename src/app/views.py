@@ -35,6 +35,7 @@ from app.providers import manual, services, tmdb
 from app.templatetags import app_tags
 from users.models import (
     DateFormatChoices,
+    HomeLayoutChoices,
     HomeSortChoices,
     MediaSortChoices,
     MediaStatusChoices,
@@ -48,6 +49,7 @@ logger = logging.getLogger(__name__)
 def home(request):
     """Home page with media items in progress and planning."""
     sort_by = request.user.update_preference("home_sort", request.GET.get("sort"))
+    layout = request.user.update_preference("home_layout", request.GET.get("layout"))
     media_type_to_load = request.GET.get("load_media_type")
     status_to_load = request.GET.get("load_status", Status.IN_PROGRESS.value)
     items_limit = 14
@@ -65,6 +67,8 @@ def home(request):
             "media_list": list_by_type.get(media_type_to_load, []),
             "home_status": status_to_load,
         }
+        if layout == HomeLayoutChoices.LIST:
+            return render(request, "app/components/home_list_items.html", context)
         return render(request, "app/components/home_grid.html", context)
 
     home_sections = []
@@ -90,6 +94,7 @@ def home(request):
         "home_sections": home_sections,
         "current_sort": sort_by,
         "sort_choices": HomeSortChoices.choices,
+        "current_layout": layout,
         "items_limit": items_limit,
     }
     return render(request, "app/home.html", context)
@@ -117,6 +122,13 @@ def progress_edit(request, media_type, instance_id):
     context = {
         "media": media,
     }
+    # The home list layout swaps a card-shaped region instead of the +/- changer
+    if request.POST.get("view") == "card":
+        return render(
+            request,
+            "app/components/next_progress.html",
+            context,
+        )
     return render(
         request,
         "app/components/progress_changer.html",

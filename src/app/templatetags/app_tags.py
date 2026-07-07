@@ -131,6 +131,15 @@ def now_plus_minutes(minutes):
 
 
 @register.filter
+def sub(value, arg):
+    """Subtract arg from value."""
+    try:
+        return int(value) - int(arg)
+    except (ValueError, TypeError):
+        return ""
+
+
+@register.filter
 def is_list(arg1):
     """Return True if the object is a list."""
     return isinstance(arg1, list)
