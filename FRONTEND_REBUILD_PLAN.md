@@ -78,7 +78,26 @@ API can still be added later for a native app without throwing this work away.
 | `trailer_card` | "Guarda il trailer 02:25" | Thumbnail + play overlay + duration, links out to YouTube (needs `videos` append in TMDB provider) |
 | `skeleton` | — | Skeleton shimmer placeholders for every card type, used during HTMX loads |
 
-### 3.3 Visual tokens
+### 3.3 Gestures (IMG_7961/7962)
+
+Swipeable list cards — the fast path for heavy users, on top of (never instead
+of) the visible check button:
+
+- **Swipe right → mark watched**: card slides revealing a green check panel;
+  release past ~40% width commits (same `episode_save`/`media_save` call as
+  the button, optimistic, with undo toast). Short haptic via
+  `navigator.vibrate` where supported.
+- **Swipe left → hide/manage**: blue panel with crossed-eye icon; commits to
+  "hide from Watch Next" — in Yamtrack terms a quick status change, surfaced
+  as a mini bottom sheet (Paused / Dropped / keep tracking) since we have
+  explicit statuses rather than TV Time's single "hide".
+- Implementation: small Alpine directive (`x-swipe`) using pointer events +
+  CSS transforms; horizontal-intent detection so vertical scroll never fights
+  the gesture; disabled when `prefers-reduced-motion`; buttons remain the
+  accessible/desktop path.
+- Applies to episode cards (home Watchlist) and movie cards (Movies tab).
+
+### 3.4 Visual tokens
 
 - Replace scattered hex values with **CSS custom properties** in
   `@theme` (Tailwind v4): `--color-surface`, `--color-surface-raised`,
@@ -224,6 +243,7 @@ it becomes a `detail_sheet` opened from any episode row/card:
 - [ ] 2.2 Home list view: section pills, "watch next" / stale sections, recently-watched history rows.
 - [ ] 2.3 Home grid view: poster cards + progress bars, view toggle persisted per user.
 - [ ] 2.4 Skeleton states + `hx-trigger="revealed"` section lazy-load.
+- [ ] 2.6 Swipe gestures (§3.3): `x-swipe` directive; right = mark watched, left = hide/status sheet; undo toast shared with the check button path. Reused on Movies tab in Phase 4.
 - [ ] 2.5 Acceptance: check-in round trip feels instant (< 100 ms perceived); home LCP ≤ 2.0 s on throttled 4G.
 
 ### Phase 3 — Upcoming segment
@@ -266,6 +286,7 @@ it becomes a `detail_sheet` opened from any episode row/card:
 - **Profile is a hub screen** (IMG_7939/7940): hero header, stat tiles, lists, horizontal shelves; statistics/lists/settings hang off it. This resolves where secondary nav lives.
 - **Empty states** are a first-class pattern: headline + illustration + hint + single yellow CTA.
 - **Statistics** (batch 3, IMG_7943–7947) is a per-media-type card stack: big-number cards with 7-day deltas, weekly bar charts, ranked tables (genres, networks, scores), swipeable number⇄chart carousels. Mapped card-by-card in §4.1; requires the Phase 0 `Item` metadata schema change. Social cards (character votes, comments, likes) are omitted — no social graph in Yamtrack.
+- **Swipe gestures** (batch 5, IMG_7961/7962, spec in §3.3): swipe right on a card = mark watched (green check panel), swipe left = hide (blue crossed-eye panel → status mini-sheet in Yamtrack). Task 2.6.
 - **Detail screens** (batch 4, IMG_7953–7958, mapped in §4.2): episode detail is a swipeable sheet with per-episode pager; movie detail is a full page with hero, INFO/ALTRO tabs, trailer, cast and recommendations shelves. TMDB provider **already fetches** cast, recommendations, and `watch/providers` — "Dove guardare" is render-only work; trailer needs a one-line `videos` append. Ratings/reactions/favorite-character/comments per episode are omitted (social features).
 
 ## 8. Open questions (for upcoming reference material)
